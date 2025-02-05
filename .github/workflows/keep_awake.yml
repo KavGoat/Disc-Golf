@@ -1,0 +1,25 @@
+name: Keep Streamlit App Awake
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'  # Runs every 12 hours
+
+jobs:
+  commit-trivial-change:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Make a trivial change
+        run: |
+          date >> keepalive.txt
+      
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add keepalive.txt
+          git commit -m "Keep alive commit: $(date)" || echo "No changes to commit"
+          git push
