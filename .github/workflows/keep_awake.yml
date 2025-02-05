@@ -3,7 +3,10 @@ name: Keep Streamlit App Awake
 on:
   schedule:
     - cron: '0 */12 * * *'  # Runs every 12 hours
-  workflow_dispatch:  # Enables manual triggering
+  workflow_dispatch:  # Allows manual triggering
+
+permissions:
+  contents: write  # Ensures the workflow can push changes
 
 jobs:
   commit-trivial-change:
@@ -12,15 +15,25 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          persist-credentials: true  # Ensures GitHub Actions can push changes
 
       - name: Make a trivial change
         run: |
-          date >> keepalive.txt
-      
+          echo "Last updated: $(date)" >> keepalive.txt
+
       - name: Commit and push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add keepalive.txt
           git commit -m "Keep alive commit: $(date)" || echo "No changes to commit"
-          git push
+          git push origin HEAD:keep-alive-updates  # Push to a separate branch
+
+      - name: Create Pull Request (if needed)
+        uses: peter-evans/create-pull-request@v5
+        with:
+          branch: keep-alive-updates
+          title: "Keep alive update"
+          body: "Automated keep-alive commit to prevent Streamlit from sleeping."
+          delete-branch: true  # Deletes branch after merging
