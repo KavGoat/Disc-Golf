@@ -110,6 +110,7 @@ def updater(data):
         with redirect_stdout(f):
 
             sheet.append_rows(append_clean, value_input_option="USER_ENTERED")
+        st.switch_page("UDisc_History.py")
 
 data,course_layouts = fetch_data()
 updater(data)

@@ -11,13 +11,14 @@ from contextlib import redirect_stdout
 import math
 import os
 
-st.set_page_config(initial_sidebar_state="collapsed", page_title="UDisc History")
+st.set_page_config(initial_sidebar_state="collapsed",
+                   page_title="UDisc History")
 
 
 st.markdown("""
     <style>
-    
-           /* Remove blank space at top and bottom */ 
+
+           /* Remove blank space at top and bottom */
            .stMainBlockContainer {
                padding-top: 3rem;
                padding-left: 1rem;
@@ -26,6 +27,7 @@ st.markdown("""
             }
     </style>
     """, unsafe_allow_html=True)
+
 
 def fetch_data():
     try:
@@ -55,6 +57,33 @@ def fetch_data():
         pass
 
 
+def get_rounds(data, course_layouts, Course, Layout):
+    dates = []
+    for rounds in data:
+        if Course == "All":
+            date = rounds[3]
+        elif Layout == "All":
+            if rounds[1] == Course:
+                date = rounds[3]
+        elif rounds[1] == Course and rounds[2] == Layout:
+            date = rounds[3]
+        try:
+            if date not in dates:
+                dates += [date]
+        except:
+            pass
+    dates.sort(reverse=True)
+    rounds = {}
+    
+    for date in dates:
+        ting = []
+        for attempt in data:
+            if attempt[3] == date:
+                ting += [attempt]
+        rounds[date] = ting
+    return dates, rounds
+
+
 data, course_layouts = fetch_data()
 Course = st.selectbox(
     "Select a course", list(course_layouts.keys()))
@@ -62,15 +91,7 @@ Course = st.selectbox(
 Layout = st.selectbox(
     "Select a layout", course_layouts[Course])
 
-"""for x in ting:
-        with st.container(border=True):
-            st.write(str(x))
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.write("Kav")
-            with col2:
-                st.write("Nethidu")
-            with col3:
-                st.write("Mahith")
-            with st.expander("See scores for each hole"):
-                st.write("Data")"""
+date, rounds = get_rounds(data, course_layouts, Course, Layout)
+for roundt in list(rounds.keys()):
+    st.write(rounds[roundt][0][3])
+    st.write(roundt)
