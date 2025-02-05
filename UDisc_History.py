@@ -30,6 +30,21 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+custom_css = """
+    <style>
+        @media (max-width: 743px) {
+            .laptop-table {
+                display: none;
+            }
+        }
+        @media (min-width: 744px) {
+            .mobile-table {
+                display: none;
+            }
+        }
+    </style>
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
 
 def fetch_data():
     try:
@@ -140,6 +155,44 @@ def get_best(rounds, dates):
                             all_data[name] = [tries[i], totals[i], scores[i]]
     return all_data
 
+
+def laptop_style_table(df):
+    
+    df.columns = df.iloc[:2].values.tolist()  # Set the first two rows as headers
+    df = df[2:].reset_index(drop=True)
+
+    styled_df = df.style.set_table_styles([
+        {"selector": "th, td", "props": [("font-size", "14px"), ("border", "none"), ("padding-right", "2px"), ("padding-left", "2px")]},
+        {"selector": "thead th:first-child, tbody td:first-child", "props": [("text-align", "left")]},  # Align first column to the left
+        {"selector": "th, td", "props": [("text-align", "center")]},  # Center align all other columns
+        {"selector": "thead th", "props": [("border-bottom", "none")]},  # Remove horizontal border for header
+        {"selector": "tbody td", "props": [("border-bottom", "none")]},  # Remove horizontal border for body
+        {"selector": "th, td", "props": [("min-width", "32.61111111px")]},  # Apply min-width calculation
+        ]).hide(axis="index").to_html()
+
+    styled_html = f'<div class="laptop-table">{styled_df}</div>'
+
+    return styled_html
+
+def mobile_style_table(df):
+    
+    df.columns = df.iloc[:2].values.tolist()  # Set the first two rows as headers
+    df = df[2:].reset_index(drop=True)
+
+    styled_df = df.style.set_table_styles([
+        {"selector": "th, td", "props": [("font-size", "14px"), ("border", "none"), ("padding-right", "2px"), ("padding-left", "2px")]},
+        {"selector": "thead th:first-child, tbody td:first-child", "props": [("text-align", "left")]},  # Align first column to the left
+        {"selector": "th, td", "props": [("text-align", "center")]},  # Center align all other columns
+        {"selector": "thead th", "props": [("border-bottom", "none")]},  # Remove horizontal border for header
+        {"selector": "tbody td", "props": [("border-bottom", "none")]},  # Remove horizontal border for body
+        {"selector": "th, td", "props": [("min-width", "calc(min((11.111vw - 17.222px),(10vw - 10.4px)));")]},  # Apply min-width calculation
+        ]).hide(axis="index").to_html()
+
+    styled_html = f'<div class="mobile-table">{styled_df}</div>'
+
+    return styled_html
+    
+
 def display_round(all_rounds_data, date, holes, pars, current_course, current_layout):
     st.markdown("""
         <style>
@@ -183,15 +236,27 @@ def display_round(all_rounds_data, date, holes, pars, current_course, current_la
                 st.markdown(f"<p style='text-align: center; font-size: clamp(16px, 2.5vw, 18px); font-weight: bold;'>{name}</p>", unsafe_allow_html=True)
                 st.markdown(f"<p style='text-align: center; font-size: clamp(14px, 2vw, 16px)'>{score_display}</p>", unsafe_allow_html=True)
 
-        # Expander for hole data (Left-Aligned)
-        #with st.expander("See hole data"):
-        #    st.markdown("<p style='text-align: left; font-size: 14px;'>Test</p>", unsafe_allow_html=True)
-        #    full_table = [["Hole"] + holes, ["Par"] + pars]
 
-        #    for player in all_rounds_data:
-        #        full_table.append([player] + all_rounds_data[player][0])
-        #    df = pd.DataFrame(full_table)
-        #    st.write(df)
+        with st.expander("See hole data"):
+            full_table = [["Hole"] + holes, ["Par"] + pars]
+            for player in all_rounds_data:
+                full_table.append([player] + all_rounds_data[player][0])
+            df = pd.DataFrame(full_table)
+            html_string = "<div>"
+            html_string += laptop_style_table(df)
+            if len(holes) > 9:
+                first_table = [["Hole"] + holes[:9], ["Par"] + pars[:9]]
+                second_table = [["Hole"] + holes[9:], ["Par"] + pars[9:]]
+                for player in all_rounds_data:
+                    first_table.append([player] + all_rounds_data[player][0][:9])
+                    second_table.append([player] + all_rounds_data[player][0][9:])
+                first_df = pd.DataFrame(first_table)
+                second_df = pd.DataFrame(second_table)
+                html_string += mobile_style_table(first_df)
+                html_string += mobile_style_table(second_df)
+            else:
+                html_string += mobile_style_table(df)
+            st.markdown(html_string+"</div>",unsafe_allow_html=True)
 
 def main():
     data, course_layouts = fetch_data()
@@ -200,9 +265,6 @@ def main():
 
     Layout = st.selectbox(
         "Select a layout", course_layouts[Course])
-    
-
-
     dates, rounds = get_all_rounds(data, course_layouts, Course, Layout)
     if Course != "All" and Layout != "All":
         all_rounds_data, holes, pars, current_course, current_layout = get_round(dates[0], rounds)
