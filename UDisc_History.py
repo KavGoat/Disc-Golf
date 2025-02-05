@@ -10,6 +10,8 @@ import sys
 from contextlib import redirect_stdout
 import math
 import os
+from datetime import datetime
+import pytz
 
 st.set_page_config(initial_sidebar_state="collapsed",
                    page_title="UDisc History")
@@ -84,12 +86,14 @@ def get_all_rounds(data, course_layouts, Course, Layout):
     return dates, rounds
 
 def individuals_round(date, rounds, name, length):
+    individuals_data = ["-"] * length
     for individuals in rounds[date]:
         if individuals[0]==name:
             individuals_data = ["-" if x == 0 else int(x) for x in individuals[8:8+length]]
             return [individuals_data, int(individuals[5]), int(individuals[6])]
         else:
             pass
+    return [individuals_data, "-", "-"]
 
 def get_round(date, rounds):
     names = ["Kav", "Nethidu", "Mahith"]
@@ -120,9 +124,20 @@ def display_round(all_rounds_data, date, holes, pars, current_course, current_la
     """, unsafe_allow_html=True)
     with st.container(border=True):
         # Display Course and Layout (Left-Aligned)
+
+        utc_tz = pytz.timezone('UTC')
+        nz_tz = pytz.timezone('Pacific/Auckland')
+
+        # Given UTC time
+        utc_time = datetime.strptime(date, "%Y-%m-%d %H%M")
+
+        # Localize the time to UTC and convert to NZ Timezone
+        utc_time = utc_tz.localize(utc_time)
+        nz_time = utc_time.astimezone(nz_tz)
+        formatted_date_time = "🗓️&nbsp;&nbsp;" + nz_time.strftime("%d/%m/%Y") + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;🕒&nbsp;&nbsp;" + nz_time.strftime("%I:%M %p").lstrip("0")
         st.markdown(f"<p style='text-align: left; font-size: clamp(18px, 3.5vw, 26px); font-weight: bold;'>{current_course}</p>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align: left; font-size: clamp(14px, 2vw, 16px);'>{current_layout}</p>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align: left; font-size: clamp(14px, 2vw, 16px);'>{date}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: left; font-size: clamp(14px, 2vw, 16px);'>⛳️&nbsp;&nbsp;{current_layout}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: left; font-size: clamp(14px, 2vw, 16px);'>{formatted_date_time}</p>", unsafe_allow_html=True)
 
       # Create Columns
         col1, col2, col3 = st.columns(3)
@@ -133,8 +148,7 @@ def display_round(all_rounds_data, date, holes, pars, current_course, current_la
         for index, name in enumerate(names):
             with cols[index]:
                 player_data = all_rounds_data.get(name, [0, 0, 0])  # Default values if missing
-                score_display = f"{'+' if player_data[2] > 0 else ''}{player_data[2]} ({player_data[1]})"
-                
+                score_display = f"{'+' if isinstance(player_data[2], int) and player_data[2] > 0 else ''}{player_data[2]} ({player_data[1]})"
                 st.markdown(f"<p style='text-align: center; font-size: 18px; font-weight: bold;'>{name}</p>", unsafe_allow_html=True)
                 st.markdown(f"<p style='text-align: center; font-size: 16px;'>{score_display}</p>", unsafe_allow_html=True)
 
