@@ -1,5 +1,3 @@
-
-
 name: Keep Streamlit App Awake
 
 on:
@@ -18,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          persist-credentials: false  # We will use PAT instead of default token
+          persist-credentials: false  # We will manually authenticate with PAT
 
       - name: Configure Git
         run: |
@@ -31,7 +29,7 @@ jobs:
 
       - name: Commit and push changes
         env:
-          PAT_TOKEN: ${{ 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 }}  # Use the PAT secret
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}  # Use the secret properly
         run: |
           git add keepalive.txt
           git commit -m "Keep alive commit: $(date)" || echo "No changes to commit"
