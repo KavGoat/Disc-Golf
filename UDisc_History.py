@@ -106,13 +106,25 @@ def get_round(date, rounds):
 
 
 def display_round(all_rounds_data, date, holes, pars, current_course, current_layout):
+    st.markdown("""
+        <style>
+            .stHorizontalBlock {
+                display: flex;
+                flex-wrap: nowrap;
+            }
+            .stHorizontalBlock .stColumn {
+                width: calc(33.3333333% - 1rem); /* Adjust width */
+                min-width: unset;               /* Unset min-width */
+            }
+        </style>
+    """, unsafe_allow_html=True)
     with st.container(border=True):
         # Display Course and Layout (Left-Aligned)
         st.markdown(f"<p style='text-align: left; font-size: 26px; font-weight: bold;'>{current_course}</p>", unsafe_allow_html=True)
         st.markdown(f"<p style='text-align: left; font-size: 16px;'>{current_layout}</p>", unsafe_allow_html=True)
         st.markdown(f"<p style='text-align: left; font-size: 16px;'>{date}</p>", unsafe_allow_html=True)
 
-        # Create Columns
+      # Create Columns
         col1, col2, col3 = st.columns(3)
         cols = [col1, col2, col3]
         names = list(all_rounds_data.keys())[:3]  # Use dynamic player names if available
