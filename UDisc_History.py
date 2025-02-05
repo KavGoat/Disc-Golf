@@ -13,9 +13,9 @@ import os
 from datetime import datetime
 import pytz
 
+
 st.set_page_config(initial_sidebar_state="collapsed",
                    page_title="UDisc History")
-
 
 st.markdown("""
     <style>
@@ -108,6 +108,37 @@ def get_round(date, rounds):
         all_rounds_data[name]=individuals_round(date, rounds, name, length)
     return all_rounds_data, holes, pars, current_course, current_layout
 
+def get_best(rounds, dates):
+    names = ["Kav", "Nethidu", "Mahith"]
+    pars = [int(x) for x in rounds[dates[0]][0][8:] if str(x) != 'nan']
+    length = len(pars)
+    all_data = {}
+    for name in names:
+        all_data[name] = None
+        tries = []
+        scores = []
+        totals = []
+        for date in dates:
+            tries += [individuals_round(date, rounds, name, length)[0]]
+            scores += [individuals_round(date, rounds, name, length)[2]]
+            totals += [individuals_round(date, rounds, name, length)[1]]
+        if totals.count("-") == len(totals):
+            all_data[name] = [["-"] * length, '-', "-"]
+        else:
+            filtered_scores = [a for a in scores if a != "-"]
+            filtered_totals = [a for a in totals if a != "-"]
+            max_diff = max([x - y for x, y in zip(filtered_totals, filtered_scores)])
+            valid_scores = []
+            for i in range(len(filtered_scores)):
+                if filtered_totals[i] - filtered_scores[i] == max_diff:
+                    valid_scores += [filtered_scores[i]]
+            min_score=min(valid_scores)
+            for i in range(len(tries)):
+                if scores[i] != "-":
+                    if totals[i] - scores[i] == max_diff and scores[i]==min_score:
+                        if all_data[name]==None:
+                            all_data[name] = [tries[i], totals[i], scores[i]]
+    return all_data
 
 def display_round(all_rounds_data, date, holes, pars, current_course, current_layout):
     st.markdown("""
@@ -124,20 +155,20 @@ def display_round(all_rounds_data, date, holes, pars, current_course, current_la
     """, unsafe_allow_html=True)
     with st.container(border=True):
         # Display Course and Layout (Left-Aligned)
-
-        utc_tz = pytz.timezone('UTC')
-        nz_tz = pytz.timezone('Pacific/Auckland')
-
-        # Given UTC time
-        utc_time = datetime.strptime(date, "%Y-%m-%d %H%M")
-
-        # Localize the time to UTC and convert to NZ Timezone
-        utc_time = utc_tz.localize(utc_time)
-        nz_time = utc_time.astimezone(nz_tz)
-        formatted_date_time = "🗓️&nbsp;&nbsp;" + nz_time.strftime("%d/%m/%Y") + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;🕒&nbsp;&nbsp;" + nz_time.strftime("%I:%M %p").lstrip("0")
         st.markdown(f"<p style='text-align: left; font-size: clamp(18px, 3.5vw, 26px); font-weight: bold;'>{current_course}</p>", unsafe_allow_html=True)
         st.markdown(f"<p style='text-align: left; font-size: clamp(14px, 2vw, 16px);'>⛳️&nbsp;&nbsp;{current_layout}</p>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align: left; font-size: clamp(14px, 2vw, 16px);'>{formatted_date_time}</p>", unsafe_allow_html=True)
+
+        # Given UTC time
+        if date == "NA":
+            pass
+        else:
+            utc_tz = pytz.timezone('UTC')
+            nz_tz = pytz.timezone('Pacific/Auckland')
+            utc_time = datetime.strptime(date, "%Y-%m-%d %H%M")
+            utc_time = utc_tz.localize(utc_time)
+            nz_time = utc_time.astimezone(nz_tz)
+            formatted_date_time = "🗓️&nbsp;&nbsp;" + nz_time.strftime("%d/%m/%Y") + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;🕒&nbsp;&nbsp;" + nz_time.strftime("%I:%M %p").lstrip("0")
+            st.markdown(f"<p style='text-align: left; font-size: clamp(14px, 2vw, 16px);'>{formatted_date_time}</p>", unsafe_allow_html=True)
 
       # Create Columns
         col1, col2, col3 = st.columns(3)
@@ -149,13 +180,18 @@ def display_round(all_rounds_data, date, holes, pars, current_course, current_la
             with cols[index]:
                 player_data = all_rounds_data.get(name, [0, 0, 0])  # Default values if missing
                 score_display = f"{'+' if isinstance(player_data[2], int) and player_data[2] > 0 else ''}{player_data[2]} ({player_data[1]})"
-                st.markdown(f"<p style='text-align: center; font-size: 18px; font-weight: bold;'>{name}</p>", unsafe_allow_html=True)
-                st.markdown(f"<p style='text-align: center; font-size: 16px;'>{score_display}</p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: center; font-size: clamp(16px, 2.5vw, 18px); font-weight: bold;'>{name}</p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: center; font-size: clamp(14px, 2vw, 16px)'>{score_display}</p>", unsafe_allow_html=True)
 
         # Expander for hole data (Left-Aligned)
-        with st.expander("See hole data"):
-            st.markdown("<p style='text-align: left; font-size: 14px;'>Test</p>", unsafe_allow_html=True)
+        #with st.expander("See hole data"):
+        #    st.markdown("<p style='text-align: left; font-size: 14px;'>Test</p>", unsafe_allow_html=True)
+        #    full_table = [["Hole"] + holes, ["Par"] + pars]
 
+        #    for player in all_rounds_data:
+        #        full_table.append([player] + all_rounds_data[player][0])
+        #    df = pd.DataFrame(full_table)
+        #    st.write(df)
 
 def main():
     data, course_layouts = fetch_data()
@@ -164,11 +200,18 @@ def main():
 
     Layout = st.selectbox(
         "Select a layout", course_layouts[Course])
+    
+
 
     dates, rounds = get_all_rounds(data, course_layouts, Course, Layout)
+    if Course != "All" and Layout != "All":
+        all_rounds_data, holes, pars, current_course, current_layout = get_round(dates[0], rounds)
+        best_rounds = get_best(rounds, dates)
+        st.markdown(f"<p style='text-decoration: underline;margin-bottom: 0px; text-align: left; font-size: clamp(20px, 3.7vw, 28px); font-weight: bold;'>Personal Bests</p>", unsafe_allow_html=True)
+        display_round(best_rounds, "NA", holes, pars, current_course, current_layout)
+    st.markdown(f"<p style='text-decoration: underline;margin-bottom: 0px; text-align: left; font-size: clamp(20px, 3.7vw, 28px); font-weight: bold;'>Previous Rounds</p>", unsafe_allow_html=True)
     for date in dates:
-        all_rounds_data, holes, pars, current_course, current_layout = get_round(date, rounds)
+        all_rounds_data, holes, pars, current_course, current_layout = get_round(date, rounds) 
         display_round(all_rounds_data, date, holes, pars, current_course, current_layout)
 
 main()
-    
