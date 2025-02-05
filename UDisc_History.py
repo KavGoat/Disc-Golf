@@ -120,9 +120,9 @@ def display_round(all_rounds_data, date, holes, pars, current_course, current_la
     """, unsafe_allow_html=True)
     with st.container(border=True):
         # Display Course and Layout (Left-Aligned)
-        st.markdown(f"<p style='text-align: left; font-size: 26px; font-weight: bold;'>{current_course}</p>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align: left; font-size: 16px;'>{current_layout}</p>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align: left; font-size: 16px;'>{date}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: left; font-size: clamp(18px, 3.5vw, 26px); font-weight: bold;'>{current_course}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: left; font-size: clamp(14px, 2vw, 16px);'>{current_layout}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: left; font-size: clamp(14px, 2vw, 16px);'>{date}</p>", unsafe_allow_html=True)
 
       # Create Columns
         col1, col2, col3 = st.columns(3)
