@@ -57,7 +57,7 @@ def fetch_data():
         pass
 
 
-def get_rounds(data, course_layouts, Course, Layout):
+def get_all_rounds(data, course_layouts, Course, Layout):
     dates = []
     for rounds in data:
         if Course == "All":
@@ -83,15 +83,41 @@ def get_rounds(data, course_layouts, Course, Layout):
         rounds[date] = ting
     return dates, rounds
 
+def individuals_round(date, rounds, name, length):
+    individuals_data = [name]
+    for individuals in rounds[date]:
+        if individuals[0]==name:
+            individuals_data += ["-" if x == 0 else int(x) for x in individuals[8:8+length]]
+            individuals_data += [int(individuals[5]), int(individuals[6])]
+    return individuals_data
 
-data, course_layouts = fetch_data()
-Course = st.selectbox(
-    "Select a course", list(course_layouts.keys()))
 
-Layout = st.selectbox(
-    "Select a layout", course_layouts[Course])
+def get_round(date, rounds):
+    names = ["Kav", "Nethidu", "Mahith"]
+    par = rounds[date][0]
+    par_score = int(par[5])
+    pars = [int(x) for x in par[8:] if str(x) != 'nan']
+    par = ["Par"] + pars + ["-", par_score] 
+    length = len(pars)
+    holes = ["Hole"] + list(range(1, length + 1)) + ["Total", "Score"]
+    round_data = [holes, par]
+    for name in names:
+        round_data += [individuals_round(date, rounds, name, length)]
+    df = pd.DataFrame(round_data)
+    st.write(df)
+    
 
-date, rounds = get_rounds(data, course_layouts, Course, Layout)
-for roundt in list(rounds.keys()):
-    st.write(rounds[roundt][0][3])
-    st.write(roundt)
+def main():
+    data, course_layouts = fetch_data()
+    Course = st.selectbox(
+        "Select a course", list(course_layouts.keys()))
+
+    Layout = st.selectbox(
+        "Select a layout", course_layouts[Course])
+
+    dates, rounds = get_all_rounds(data, course_layouts, Course, Layout)
+    for date in dates:
+        round_data = get_round(date, rounds)
+
+main()
+    
