@@ -237,7 +237,7 @@ def display_round(all_rounds_data, date, holes, pars, current_course, current_la
                 st.markdown(f"<p style='text-align: center; font-size: clamp(14px, 2vw, 16px)'>{score_display}</p>", unsafe_allow_html=True)
 
 
-        with st.expander("See hole data"):
+        with st.expander("Holy by hole scores"):
             full_table = [["Hole"] + holes, ["Par"] + pars]
             for player in all_rounds_data:
                 full_table.append([player] + all_rounds_data[player][0])
