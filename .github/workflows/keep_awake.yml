@@ -3,11 +3,12 @@ name: Keep Streamlit App Awake
 on:
   schedule:
     - cron: '0 */12 * * *'  # Runs every 12 hours
+  workflow_dispatch:  # Enables manual triggering
 
 jobs:
   commit-trivial-change:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
