@@ -1,9 +1,8 @@
-name: Empty Commit Every Minute
+name: cron-schedule-updater
 on:
   schedule:
     # * is a special character in YAML so you have to quote this string
-    - cron: '*/1 * * * *'
-  
+    - cron:  '*/5 * * * *'
  
 jobs:
   empty_commit:
@@ -13,8 +12,8 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - run: git config user.email "YOUR_EMAIL@EMAIL.COM"
-    - run: git config user.name "YOUR NAME"
+    - run: git config user.email "kavindithpula@gmail.com"
+    - run: git config user.name "KavGoat"
 
     - name: Create Empty Commit
       run: git commit --allow-empty -m "Empty commit"
@@ -23,3 +22,4 @@ jobs:
       run: git push origin main  # Change 'main' to your branch name
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
