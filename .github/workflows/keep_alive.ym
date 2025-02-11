@@ -8,4 +8,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Make a request to Hugging Face Space
-        run: curl -X GET "https://your-space.hf.space/"
+        run: curl -X GET "https://kavindith-discgolf.hf.space/"
