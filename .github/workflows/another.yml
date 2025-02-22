@@ -1,0 +1,11 @@
+name: Keep HF Space Awake
+on:
+  schedule:
+    - cron: "*/5 * * * *"  # Runs every 10 minutes
+
+jobs:
+  keep_alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Make a request to Hugging Face Space
+        run: curl -X GET "http://testerting.streamlit.app"
